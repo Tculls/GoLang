@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 	"github.com/gin-gonic/gin"
-	// "errors"
+	"errors"
 )
 
 type car struct{
@@ -19,6 +19,26 @@ var cars = []car{
 	{ID: "3", Model: "A3", Make: "Audi", OnHand: 2},
 	{ID: "4", Model: "Raptor", Make: "Ford", OnHand: 2},
 	{ID: "5", Model: "Stinger", Make: "KIA", OnHand: 3},
+}
+
+func getCarById(id string)(*car, error){
+	for i, c := range cars {
+		if c.ID == id {
+			return &cars[i], nil
+		}
+	}
+	return nil, errors.New("Car not found")
+}
+
+func carById(c *gin.Context){
+	id := c.Param("id")
+	car, err := getCarById(id)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Car not found."})
+		return
+	}
+	c.IndentedJSON(http.StatusOK, car)
 }
 
 func getCars(c *gin.Context){
@@ -42,6 +62,7 @@ func main() {
 	router := gin.Default()
 	router.GET("/cars", getCars)
 	router.POST("/cars", createCar)
+	router.GET("/cars/:id", carById)
 	router.Run("localhost:8000")
 	
 
