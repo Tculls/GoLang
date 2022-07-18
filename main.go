@@ -8,8 +8,8 @@ import (
 
 type car struct{
 	ID    string  `json:"id"`
-	Model string	  `json:"title"`
-	Make string  `json:"brand"`
+	Model string	  `json:"model"`
+	Make string  `json:"make"`
 	OnHand int	  `json:"onhand"`
 }
 
@@ -26,10 +26,23 @@ func getCars(c *gin.Context){
 
 }
 
+func createCar(c *gin.Context) {
+	var newCar car
+	
+	if err := c.BindJSON(&newCar); err != nil {
+		return
+	}
+	
+	cars = append(cars, newCar)
+	c.IndentedJSON(http.StatusCreated, newCar)
+}
+
 
 func main() {
 	router := gin.Default()
 	router.GET("/cars", getCars)
+	router.POST("/cars", createCar)
 	router.Run("localhost:8000")
+	
 
 }
