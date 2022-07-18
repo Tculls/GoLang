@@ -21,6 +21,49 @@ var cars = []car{
 	{ID: "5", Model: "Stinger", Make: "KIA", OnHand: 3},
 }
 
+func rentCar(c *gin.Context){
+	id, ok := c.GetQuery("id")
+
+	if ok == false {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message" : "Missing ID query parameter"})
+		return
+	}
+
+	car, err := getCarById(id)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Car not found."})
+		return
+	}
+
+	if car.OnHand <= 0 {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Car not found."})
+		return
+	}
+
+	car.OnHand -= 1
+	c.IndentedJSON(http.StatusOK, car)
+}
+
+func returnCar(c *gin.Context){
+	id, ok := c.GetQuery("id")
+
+	if ok == false {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message" : "Missing ID query parameter"})
+		return
+	}
+
+	car, err := getCarById(id)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Car not found."})
+		return
+	}
+
+	car.OnHand += 1
+	c.IndentedJSON(http.StatusOK, car)
+}
+
 func getCarById(id string)(*car, error){
 	for i, c := range cars {
 		if c.ID == id {
@@ -29,6 +72,7 @@ func getCarById(id string)(*car, error){
 	}
 	return nil, errors.New("Car not found")
 }
+
 
 func carById(c *gin.Context){
 	id := c.Param("id")
@@ -58,11 +102,15 @@ func createCar(c *gin.Context) {
 }
 
 
+
+
 func main() {
 	router := gin.Default()
 	router.GET("/cars", getCars)
 	router.POST("/cars", createCar)
 	router.GET("/cars/:id", carById)
+	router.PATCH("/rent", rentCar)
+	router.PATCH("/return", returnCar)
 	router.Run("localhost:8000")
 	
 
